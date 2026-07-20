@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rezk-fit-hub-service
+  namespace: rezk-fit-hub-prod
+  labels:
+    app: rezk-fit-hub
+    component: service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: rezk-fit-hub
+    component: frontend

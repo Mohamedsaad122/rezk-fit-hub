@@ -1,0 +1,70 @@
+name: Rezk Fit Hub CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master, dev ]
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js Environment
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Security Vulnerability Scan
+      run: npm audit --audit-level=high || true
+
+    - name: Lint Verification
+      run: npm run lint
+
+    - name: Run Tests Suite
+      run: npm run test
+
+    - name: Compile Production Build
+      run: npm run build
+
+  docker-build-publish:
+    needs: validate-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build production multi-stage image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: Dockerfile
+        target: runner
+        push: false
+        tags: rezk-fit-hub-frontend:latest,rezk-fit-hub-frontend:${{ github.sha }}
+
+  tag-and-release:
+    needs: docker-build-publish
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Generate release tags
+      run: |
+        echo "Creating mock tag v1.2.0-${{ github.run_number }}"

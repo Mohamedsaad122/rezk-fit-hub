@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rezk-fit-hub-ingress
+  namespace: rezk-fit-hub-prod
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+spec:
+  rules:
+  - host: fit.rezkenterprise.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rezk-fit-hub-service
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - fit.rezkenterprise.com
+    secretName: rezk-fit-hub-tls

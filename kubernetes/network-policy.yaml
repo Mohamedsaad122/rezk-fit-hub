@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: rezk-fit-hub-netpol
+  namespace: rezk-fit-hub-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: rezk-fit-hub
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: rezk-fit-hub-prod
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: rezk-fit-hub-prod
